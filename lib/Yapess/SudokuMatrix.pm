@@ -37,6 +37,7 @@ sub new {
                 $el->{block} = $s;
             }
         }
+        return $s;
     };
     for my $i (0..2) {
         for my $j (0..2) {
@@ -108,7 +109,7 @@ sub fix {
     $set->clear;
     $set->insert($val);
     $el->{final} = 1;
-    print "Remaining spaces: " . --$self->{tofix} . "\r";
+#    print "Remaining spaces: " . --$self->{tofix} . "\r";
 
     $el->{rowset}->delete($el);
     foreach my $elm ($el->{rowset}->elements) {
@@ -181,6 +182,15 @@ sub print {
     print $sline;
 }
 
+sub union {
+    my $el = shift;
+    debug "el: $el\n";
+    my $s = $el->{set};
+    debug("s=$s\n");
+    foreach my $t (@_) { $s = $s->union($t->{set}) }
+    return $s;
+}
+
 sub simplify_set {
     my $self = shift;
     my $sup = shift or return;
@@ -203,15 +213,6 @@ sub simplify_set {
     return $flag;
 }
 
-sub union {
-    my $el = shift;
-    debug "el: $el\n";
-    my $s = $el->{set};
-    debug("s=$s\n");
-    foreach my $t (@_) { $s = $s->union($t->{set}) }
-    return $s;
-}
-
 sub simplify {
     my $self = shift;
 
@@ -231,22 +232,20 @@ sub solve {
 
     my $mat = $self->{mat};
     my $flag;
-    my $sflag;
     my $times = 0;
     do {
-        do {
-            $flag = 0;
-            foreach my $i (0..8) {
-                foreach my $j (0..8) {
-                    my $el = $mat->[$i][$j];
-                    if (!$el->{final} and 1 == $el->{set}->size) {
-                        $self->fix($i, $j, $el->{set}->elements);
-                        $flag = 1;
-                    }
+        $flag = 0;
+        foreach my $i (0..8) {
+            foreach my $j (0..8) {
+                my $el = $mat->[$i][$j];
+                if (!$el->{final} and 1 == $el->{set}->size) {
+                    $self->fix($i, $j, $el->{set}->elements);
+                    $flag = 1;
                 }
             }
-        } while ($flag);
-    } while ($sflag);
+        }
+        $flag ||= $self->simplify();
+    } while ($flag);
 }
 
 1;
