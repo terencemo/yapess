@@ -127,7 +127,7 @@ sub fix {
 sub load {
     my ( $self, $path ) = @_;
 
-    open(my $fh, $path);
+    open(my $fh, $path) or croak("Unable to find file $path");
     my $i = 0;
     my $mat = $self->{mat};
     while (my $data = <$fh>) {

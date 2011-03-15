@@ -6,7 +6,7 @@ use lib 'lib';
 use Yapess::SudokuMatrix;
 
 my $mat = Yapess::SudokuMatrix->new;
-my $path = shift;
+my $path = shift or die("No input file specified - pass input file path as argument");
 $mat->load($path);
 $mat->solve();
 $mat->print;
