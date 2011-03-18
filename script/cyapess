@@ -1,0 +1,64 @@
+#!/usr/bin/perl -w
+# Curses based yapess
+
+use strict;
+use warnings;
+use lib 'lib';
+use Curses;
+use Yapess::SudokuMatrix;
+
+my $mat = Yapess::SudokuMatrix->new;
+my $path = shift or die("No input file specified - pass input file path as argument");
+$mat->load($path);
+my $m = $mat->{mat};
+
+initscr;
+cbreak;
+noecho;
+nonl;
+intrflush(stdscr, 0);
+keypad(stdscr, 1);
+
+sub cprint {
+    foreach my $i (0..8) {
+        foreach my $j (0..8) {
+            my $it = $m->[$i][$j];
+            addstr(3 + $i*4, 12 + $j*8,
+                $it->{final} ? $it->{set}->elements : '.'); 
+        }
+    }
+}
+
+sub rprint {
+    foreach my $i (0..8) {
+        foreach my $j (0..8) {
+            my $it = $m->[$i][$j];
+            my @m = $it->{set}->elements;
+            if ($it->{final}) {
+                addstr(3 + $i*4, 12 + $j*8, $m[0]); 
+            } else {
+                my $k = 0;
+                unshift(@m, '(');
+                push(@m, ')');
+                while (my @n = splice(@m, 0, 3)) {
+                    addstr(3 + $i*4+$k, 12 + $j*8, join("",@n));
+                    ++$k;
+                }
+            }
+        }
+    }
+}
+
+cprint;
+refresh;
+RESOLVE:
+$mat->solve();
+cprint;
+refresh;
+#$mat->print();
+getch();
+rprint;
+getch();
+#goto RESOLVE;
+endwin;
+
